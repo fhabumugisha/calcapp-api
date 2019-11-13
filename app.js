@@ -5,6 +5,10 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const MONGODB_URI = "mongodb://localhost:27017/calcapp";
 
+//Routes imports
+const projectRoutes = require('./routes/project');
+const authRoutes = require('./routes/auth');
+
 //The app
 const app = express();
 
@@ -25,9 +29,8 @@ app.use((req, res, next) => {
 const port = 3000;
 
 //Routes
-app.get('/', (req, res) => {
-    res.status(200).json('GET request to the homepage')
-})
+app.use('/projects', projectRoutes);
+app.use('/auth', authRoutes);
 
 //Error handler
 app.use((error, req, res, next) => {
