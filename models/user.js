@@ -12,52 +12,10 @@ const userSchema = new Schema({
         required: true
     },
     projects: [
-        {
-            title: {
-                type: String,
-                required: true
-            },
-            totalAmount: {
-                type: Number,
-                defaut: 0
-            },
-            items: [
-                {
-                    title: {
-                        type: String,
-                        required: true
-                    },
-                    amount: {
-                        type: Number,
-                        defaut: 0
-                    },
-                }
-            ],
-            categories: [
-                {
-                    title: {
-                        type: String,
-                        required: true
-                    },
-                    totalAmount: {
-                        type: Number,
-                        defaut: 0
-                    },
-                    items: [
-                        {
-                            title: {
-                                type: String,
-                                required: true
-                            },
-                            amount: {
-                                type: Number,
-                                defaut: 0
-                            },
-                        }
-                    ],
-                }
-            ]
-        }
+       {
+          type: Schema.Types.ObjectId,
+          ref: 'Project'
+       }
     ]
 })
 
