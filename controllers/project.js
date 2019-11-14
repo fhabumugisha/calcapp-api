@@ -1,6 +1,4 @@
-const {
-  validationResult
-} = require("express-validator");
+const { validationResult } = require("express-validator");
 const Project = require("../models/project");
 const User = require("../models/user");
 
@@ -12,8 +10,8 @@ exports.getProjects = async (req, res, next) => {
       userId: req.userId
     }).countDocuments();
     const projects = await Project.find({
-        userId: req.userId
-      })
+      userId: req.userId
+    })
       .skip((currentPage - 1) * perPage)
       .limit(perPage);
 
@@ -33,7 +31,7 @@ exports.getProjects = async (req, res, next) => {
 exports.postProject = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const error = new Error('Validation failed, entered data is incorrect.');
+    const error = new Error("Validation failed, entered data is incorrect.");
     error.statusCode = 422;
     throw error;
   }
@@ -53,7 +51,7 @@ exports.postProject = async (req, res, next) => {
     user.projects.push(createdProject);
     await user.save();
     res.status(200).json({
-      message: 'Project created successfully',
+      message: "Project created successfully",
       project: createdProject
     });
   } catch (error) {
@@ -62,26 +60,25 @@ exports.postProject = async (req, res, next) => {
     }
     next(error);
   }
-
 };
 
 exports.updateProject = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const error = new Error('Validation failed, entered data is incorrect.');
+    const error = new Error("Validation failed, entered data is incorrect.");
     error.statusCode = 422;
     throw error;
   }
   const projectId = req.params.projectId;
   try {
-    const project = await verifyUserData(projectId, req);
+    const project = await verifyReadProjectById(projectId, req);
     const title = req.body.title;
     //const type =  req.body.type;
     project.title = title;
     // project.type =  type;
     const updatedProject = await project.save();
     res.status(200).json({
-      message: 'Project updated!',
+      message: "Project updated!",
       project: updatedProject
     });
   } catch (error) {
@@ -90,15 +87,13 @@ exports.updateProject = async (req, res, next) => {
     }
     next(error);
   }
-
-
 };
 
 exports.deleteProject = async (req, res, next) => {
   const projectId = req.params.projectId;
 
   try {
-    await verifyUserData(projectId, req);
+    await verifyReadProjectById(projectId, req);
 
     await Project.findByIdAndRemove(projectId);
 
@@ -106,29 +101,25 @@ exports.deleteProject = async (req, res, next) => {
     user.projects.pull(projectId);
     await user.save();
     res.status(200).json({
-      message: 'Deleted project.'
+      message: "Deleted project."
     });
-
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
     }
     next(error);
   }
-
-
 };
 
 exports.getProject = async (req, res, next) => {
   const projectId = req.params.projectId;
 
   try {
-    const project = await verifyUserData(projectId, req);
+    const project = await verifyReadProjectById(projectId, req);
     res.status(200).json({
-      message: 'Project fetched successfully updated!',
+      message: "Project fetched successfully updated!",
       project: project
     });
-
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -141,12 +132,11 @@ exports.getProjectCategories = async (req, res, next) => {
   const projectId = req.params.projectId;
 
   try {
-    const project = await verifyUserData(projectId, req);    
+    const project = await verifyReadProjectById(projectId, req);
     res.status(200).json({
-      message: 'Project categories fetched successfully !',
+      message: "Project categories fetched successfully !",
       categories: project.categories
     });
-
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -159,19 +149,18 @@ exports.getProjectCategory = async (req, res, next) => {
   const projectId = req.params.projectId;
   const categoryId = req.params.categoryId;
   try {
-    const project = await verifyUserData(projectId, req);  
-    
+    const project = await verifyReadProjectById(projectId, req);
+
     const category = project.categories.id(categoryId);
     if (!category) {
-      const error = new Error('Could not find category.');
+      const error = new Error("Could not find category.");
       error.statusCode = 404;
       throw error;
     }
     res.status(200).json({
-      message: 'Project category fetched successfully !',
+      message: "Project category fetched successfully !",
       category: category
     });
-
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -180,25 +169,30 @@ exports.getProjectCategory = async (req, res, next) => {
   }
 };
 
-
 exports.createProjectCategory = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error("Validation failed, entered data is incorrect.");
+    error.statusCode = 422;
+    throw error;
+  }
   const projectId = req.params.projectId;
   try {
-    const project = await verifyUserData(projectId, req);
+    const project = await verifyReadProjectById(projectId, req);
     const title = req.body.title;
     const type = req.body.type;
     const category = {
       title: title,
       type: type
-    }
-
+    };
     project.categories.push(category);
+
     const updatedProject = await project.save();
+
     res.status(200).json({
-      message: 'Category created successfully !',
+      message: "Category created successfully !",
       project: updatedProject
     });
-
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -208,27 +202,30 @@ exports.createProjectCategory = async (req, res, next) => {
 };
 
 exports.updateProjectCategory = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error("Validation failed, entered data is incorrect.");
+    error.statusCode = 422;
+    throw error;
+  }
   const projectId = req.params.projectId;
   const categoryId = req.params.categoryId;
   try {
-    const project = await verifyUserData(projectId, req);
+    const project = await verifyReadProjectById(projectId, req);
     const category = project.categories.id(categoryId);
     if (!category) {
-      const error = new Error('Could not find category.');
+      const error = new Error("Could not find category.");
       error.statusCode = 404;
       throw error;
     }
     const title = req.body.title;
-    
-    
     category.title = title;
     console.log(category);
     const updatedProject = await project.save();
     res.status(200).json({
-      message: 'Category updated successfully !',
+      message: "Category updated successfully !",
       project: updatedProject
     });
-
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -236,27 +233,25 @@ exports.updateProjectCategory = async (req, res, next) => {
     next(error);
   }
 };
-
-
 
 exports.deleteProjectCategory = async (req, res, next) => {
   const projectId = req.params.projectId;
   const categoryId = req.params.categoryId;
   try {
-    const project = await verifyUserData(projectId, req);
+    const project = await verifyReadProjectById(projectId, req);
     const category = project.categories.id(categoryId);
     if (!category) {
-      const error = new Error('Could not find category.');
+      const error = new Error("Could not find category.");
       error.statusCode = 404;
       throw error;
     }
     project.categories.pull(categoryId);
+    //TODO Update project totalAmount
     const updatedProject = await project.save();
     res.status(200).json({
-      message: 'Category deleted successfully !',
+      message: "Category deleted successfully !",
       project: updatedProject
     });
-
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -264,26 +259,23 @@ exports.deleteProjectCategory = async (req, res, next) => {
     next(error);
   }
 };
-
-
 
 exports.getProjectCategoryItems = async (req, res, next) => {
   const projectId = req.params.projectId;
   const categoryId = req.params.categoryId;
   try {
-    const project = await verifyUserData(projectId, req);
+    const project = await verifyReadProjectById(projectId, req);
     const category = project.categories.id(categoryId);
     if (!category) {
-      const error = new Error('Could not find category.');
+      const error = new Error("Could not find category.");
       error.statusCode = 404;
       throw error;
     }
-    
+
     res.status(200).json({
-      message: 'Category items fetched successfully !',
+      message: "Category items fetched successfully !",
       items: category.items
     });
-
   } catch (error) {
     if (!error.statusCode) {
       error.statusCode = 500;
@@ -292,79 +284,298 @@ exports.getProjectCategoryItems = async (req, res, next) => {
   }
 };
 
-exports.getProjectCategoryItem = (req, res, next) => {
-  res.status(200).json({
-    title: "Let go!",
-    totalPrice: "200 Euros"
-  });
+exports.getProjectCategoryItem = async (req, res, next) => {
+  const projectId = req.params.projectId;
+  const categoryId = req.params.categoryId;
+  const itemId = req.params.itemId;
+
+  try {
+    const project = await verifyReadProjectById(projectId, req);
+    const category = project.categories.id(categoryId);
+    if (!category) {
+      const error = new Error("Could not find category.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const item = category.items.id(itemId);
+    if (!item) {
+      const error = new Error("Could not find item.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    res.status(200).json({
+      message: "Category item fetched successfully !",
+      item: item
+    });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
+  }
 };
 
-exports.createProjectCategoryItem = (req, res, next) => {
-  res.status(200).json({
-    title: "Let go!",
-    totalPrice: "200 Euros"
-  });
+exports.createProjectCategoryItem = async (req, res, next) => {
+  const projectId = req.params.projectId;
+  const categoryId = req.params.categoryId;
+
+  try {
+    verifyValidationResult(req);
+    const project = await verifyReadProjectById(projectId, req);
+    const category = project.categories.id(categoryId);
+    if (!category) {
+      const error = new Error("Could not find category.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const item = {
+      title: req.body.title,
+      amount: req.body.amount
+    };
+    category.items.push(item);
+    //TODO Update project totalAmount
+    const updatedProject = await project.save();
+
+    res.status(200).json({
+      message: "Category item created successfully !",
+      project: updatedProject
+    });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
+  }
 };
 
-exports.deleteProjectCategoryItem = (req, res, next) => {
-  res.status(200).json({
-    title: "Let go!",
-    totalPrice: "200 Euros"
-  });
+exports.deleteProjectCategoryItem = async (req, res, next) => {
+  const projectId = req.params.projectId;
+  const categoryId = req.params.categoryId;
+  const itemId = req.params.itemId;
+
+  try {
+    const project = await verifyReadProjectById(projectId, req);
+    const category = project.categories.id(categoryId);
+    if (!category) {
+      const error = new Error("Could not find category.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const item = category.items.id(itemId);
+    if (!item) {
+      const error = new Error("Could not find item.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    category.items.pull(itemId);
+    //TODO Update project totalAmount
+    const updatedProject = await project.save();
+    res.status(200).json({
+      message: "Category item deleted successfully !",
+      project: updatedProject
+    });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
+  }
 };
 
-exports.updateProjectCategoryItem = (req, res, next) => {
-  res.status(200).json({
-    title: "Let go!",
-    totalPrice: "200 Euros"
-  });
+exports.updateProjectCategoryItem = async (req, res, next) => {
+  const projectId = req.params.projectId;
+  const categoryId = req.params.categoryId;
+  const itemId = req.params.itemId;
+
+  try {
+    verifyValidationResult(req);
+    const project = await verifyReadProjectById(projectId, req);
+    const category = project.categories.id(categoryId);
+    if (!category) {
+      const error = new Error("Could not find category.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const item = category.items.id(itemId);
+    if (!item) {
+      const error = new Error("Could not find item.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    item.title = req.body.title;
+    item.amount = req.body.amount;
+    //TODO Update project totalAmount
+    const updatedProject = await project.save();
+    res.status(200).json({
+      message: "Category item updated successfully !",
+      project: updatedProject
+    });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
+  }
 };
 
-exports.getProjectItems = (req, res, next) => {
-  res.status(200).json({
-    title: "Let go!",
-    totalPrice: "200 Euros"
-  });
+exports.getProjectItems = async (req, res, next) => {
+  const projectId = req.params.projectId;
+
+  try {
+    const project = await verifyReadProjectById(projectId, req);
+    res.status(200).json({
+      message: "Project items fetched successfully !",
+      items: project.items
+    });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
+  }
 };
 
-exports.getProjectItem = (req, res, next) => {
-  res.status(200).json({
-    title: "Let go!",
-    totalPrice: "200 Euros"
-  });
+exports.getProjectItem = async (req, res, next) => {
+  const projectId = req.params.projectId;
+  const itemId = req.params.itemId;
+  try {
+    const project = await verifyReadProjectById(projectId, req);
+
+    const item = project.items.id(itemId);
+    if (!item) {
+      const error = new Error("Could not find item.");
+      error.statusCode = 404;
+      throw error;
+    }
+    res.status(200).json({
+      message: "Project item fetched successfully !",
+      item: item
+    });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
+  }
 };
 
-exports.createProjectItem = (req, res, next) => {
-  res.status(200).json({
-    title: "Let go!",
-    totalPrice: "200 Euros"
-  });
+exports.createProjectItem = async (req, res, next) => {
+  const projectId = req.params.projectId;
+
+  try {
+    verifyValidationResult(req);
+    const project = await verifyReadProjectById(projectId, req);
+
+    const item = {
+      title: req.body.title,
+      amount: req.body.amount
+    };
+    project.items.push(item);
+    //TODO Update project totalAmount
+    const updatedProject = await project.save();
+
+    res.status(200).json({
+      message: "Project item created successfully !",
+      project: updatedProject
+    });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
+  }
 };
 
-exports.deleteProjectItem = (req, res, next) => {
-  res.status(200).json({
-    title: "Let go!",
-    totalPrice: "200 Euros"
-  });
+exports.deleteProjectItem = async (req, res, next) => {
+  const projectId = req.params.projectId;
+  const itemId = req.params.itemId;
+  try {
+    const project = await verifyReadProjectById(projectId, req);
+
+    const item = project.items.id(itemId);
+    if (!item) {
+      const error = new Error("Could not find item.");
+      error.statusCode = 404;
+      throw error;
+    }
+    project.items.pull(itemId);
+    //TODO Update project totalAmount
+    const updatedProject = await project.save();
+
+    res.status(200).json({
+      message: "Project item deleted successfully !",
+      project: updatedProject
+    });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
+  }
 };
 
-exports.updateProjectItem = (req, res, next) => {
-  res.status(200).json({
-    title: "Let go!",
-    totalPrice: "200 Euros"
-  });
+exports.updateProjectItem = async (req, res, next) => {
+  try {
+    verifyValidationResult(req);
+    const projectId = req.params.projectId;
+    const itemId = req.params.itemId;
+    const project = await verifyReadProjectById(projectId, req);
+
+    const item = project.items.id(itemId);
+    if (!item) {
+      const error = new Error("Could not find item.");
+      error.statusCode = 404;
+      throw error;
+    }
+    item.title = req.body.title;
+    item.amount = req.body.amount;
+    //TODO Update project totalAmount
+    const updatedProject = await project.save();
+    res.status(200).json({
+      message: "Project item updated successfully !",
+      project: updatedProject
+    });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
+  }
 };
 
-
-async function verifyUserData(projectId, req) {
+/**
+ *
+ * @param {*} req
+ */
+function verifyValidationResult(req) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error("Validation failed, entered data is incorrect.");
+    error.statusCode = 422;
+    throw error;
+  }
+}
+/**
+ *
+ * @param {*} projectId
+ * @param {*} req
+ */
+async function verifyReadProjectById(projectId, req) {
   const project = await Project.findById(projectId);
   if (!project) {
-    const error = new Error('Could not find project.');
+    const error = new Error("Could not find project.");
     error.statusCode = 404;
     throw error;
   }
   if (project.userId.toString() != req.userId) {
-    const error = new Error('Not authorized!');
+    const error = new Error("Not authorized!");
     error.statusCode = 403;
     throw error;
   }

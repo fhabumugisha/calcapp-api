@@ -14,7 +14,7 @@ module.exports = (req, res, next) => {
 
     } catch (error) {
         error.statusCode = 500;
-    throw err;
+    throw error;
     }
 
     if(!decodedToken){
