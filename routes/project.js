@@ -72,7 +72,7 @@ router.get(
 router.post(
   "/:projectId/categories/:categoryId/items",
   auth,
-  [body("title").not().isEmpty(), body("amount").not().isEmpty()],
+  [body("title").not().isEmpty(), body("amount").isDecimal().withMessage("Should be a decimal number")],
   projectController.createProjectCategoryItem
 );
 
@@ -91,7 +91,7 @@ router.delete(
 router.put(
   "/:projectId/categories/:categoryId/items/:itemId",
   auth,
-  [body("title").not().isEmpty(), body("amount").not().isEmpty()],
+  [body("title").not().isEmpty(), body("amount").isDecimal().withMessage("Should be a decimal number")],
   projectController.updateProjectCategoryItem
 );
 
@@ -101,7 +101,7 @@ router.get("/:projectId/items", auth, projectController.getProjectItems);
 router.post(
   "/:projectId/items",
   auth,
-  [body("title").not().isEmpty(), body("amount").not().isEmpty()],
+  [body("title").not().isEmpty(), body("amount").not().isEmpty().isDecimal()],
   projectController.createProjectItem
 );
 
@@ -116,7 +116,7 @@ router.delete(
 router.put(
   "/:projectId/items/:itemId",
   auth,
-  [body("title").not().isEmpty(), body("amount").not().isEmpty()],
+  [body("title").not().isEmpty(), body("amount").not().isEmpty().isDecimal()],
   projectController.updateProjectItem
 );
 

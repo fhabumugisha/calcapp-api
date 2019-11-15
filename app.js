@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 //Database
 const mongoose = require('mongoose');
 const MONGODB_URI = "mongodb://localhost:27017/calcapp";
+//const MONGODB_URI = 'mongodb+srv://mongofab:<password>@cluster0-iogap.mongodb.net/calcapp?retryWrites=true&w=majority';
 
 //Routes imports
 const projectRoutes = require('./routes/project');

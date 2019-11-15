@@ -27,7 +27,7 @@ const projectSchema = new Schema(
     },
     totalAmount: {
       type: Number,
-      defaut: 0
+      default: 0
     },
     items: [
       {
@@ -37,7 +37,7 @@ const projectSchema = new Schema(
         },
         amount: {
           type: Number,
-          defaut: 0
+          default: 0
         }
       }
     ],
@@ -54,7 +54,7 @@ const projectSchema = new Schema(
         },
         totalAmount: {
           type: Number,
-          defaut: 0
+          default:0 
         },
         items: [
           {
@@ -64,7 +64,7 @@ const projectSchema = new Schema(
             },
             amount: {
               type: Number,
-              defaut: 0
+              default: 0
             }
           }
         ]

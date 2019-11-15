@@ -2,6 +2,8 @@ const { validationResult } = require("express-validator");
 const Project = require("../models/project");
 const User = require("../models/user");
 
+const {ProjectTypes,  CategoryTypes} = require("../models/project");
+
 exports.getProjects = async (req, res, next) => {
   const currentPage = req.query.page || 1;
   const perPage = 2;
@@ -247,6 +249,12 @@ exports.deleteProjectCategory = async (req, res, next) => {
     }
     project.categories.pull(categoryId);
     //TODO Update project totalAmount
+    if(CategoryTypes.Revenue === category.type || CategoryTypes.Other === category.type){
+      project.totalAmount = project.totalAmount - category.totalAmount;
+    }else if(CategoryTypes.Spent === category.type){
+      project.totalAmount = project.totalAmount + category.totalAmount;
+    }
+    
     const updatedProject = await project.save();
     res.status(200).json({
       message: "Category deleted successfully !",
@@ -333,12 +341,19 @@ exports.createProjectCategoryItem = async (req, res, next) => {
 
     const item = {
       title: req.body.title,
-      amount: req.body.amount
+      amount: +req.body.amount
     };
+    
     category.items.push(item);
-    //TODO Update project totalAmount
+    //Update total amount
+    category.totalAmount =  category.totalAmount + item.amount;
+   
+    if(CategoryTypes.Revenue === category.type || CategoryTypes.Other === category.type){
+      project.totalAmount = project.totalAmount + item.amount;
+    }else if(CategoryTypes.Spent === category.type){
+      project.totalAmount = project.totalAmount - item.amount;
+    }
     const updatedProject = await project.save();
-
     res.status(200).json({
       message: "Category item created successfully !",
       project: updatedProject
@@ -373,7 +388,14 @@ exports.deleteProjectCategoryItem = async (req, res, next) => {
     }
 
     category.items.pull(itemId);
-    //TODO Update project totalAmount
+    // Update project totalAmount
+    category.totalAmount =  category.totalAmount - item.amount;
+   
+    if(CategoryTypes.Revenue === category.type || CategoryTypes.Other === category.type){
+      project.totalAmount = project.totalAmount - item.amount;
+    }else if(CategoryTypes.Spent === category.type){
+      project.totalAmount = project.totalAmount + item.amount;
+    }
     const updatedProject = await project.save();
     res.status(200).json({
       message: "Category item deleted successfully !",
@@ -408,10 +430,24 @@ exports.updateProjectCategoryItem = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-
-    item.title = req.body.title;
-    item.amount = req.body.amount;
-    //TODO Update project totalAmount
+       
+    category.items.pull(itemId);   
+    //Update total amount
+    category.totalAmount =  category.totalAmount - item.amount;
+   
+    const newItem = {
+      title : req.body.title,
+      amount: +req.body.amount
+    }
+    category.items.push(newItem);    
+    category.totalAmount =  category.totalAmount + newItem.amount;
+        
+   
+    if(CategoryTypes.Revenue === category.type || CategoryTypes.Other === category.type){
+      project.totalAmount = ( project.totalAmount - item.amount) + newItem.amount;
+    }else if(CategoryTypes.Spent === category.type){
+      project.totalAmount = (project.totalAmount + item.amount) - newItem.amount;
+    }
     const updatedProject = await project.save();
     res.status(200).json({
       message: "Category item updated successfully !",
