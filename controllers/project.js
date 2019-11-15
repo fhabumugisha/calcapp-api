@@ -31,12 +31,7 @@ exports.getProjects = async (req, res, next) => {
 };
 
 exports.postProject = async (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error("Validation failed, entered data is incorrect.");
-    error.statusCode = 422;
-    throw error;
-  }
+  
 
   const title = req.body.title;
   const type = req.body.type;
@@ -48,6 +43,7 @@ exports.postProject = async (req, res, next) => {
     totalAmount: totalAmount
   });
   try {
+    verifyValidationResult(req);
     const createdProject = await project.save();
     const user = await User.findById(req.userId);
     user.projects.push(createdProject);
@@ -65,14 +61,10 @@ exports.postProject = async (req, res, next) => {
 };
 
 exports.updateProject = async (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error("Validation failed, entered data is incorrect.");
-    error.statusCode = 422;
-    throw error;
-  }
+  
   const projectId = req.params.projectId;
   try {
+    verifyValidationResult(req);
     const project = await verifyReadProjectById(projectId, req);
     const title = req.body.title;
     //const type =  req.body.type;
@@ -172,14 +164,10 @@ exports.getProjectCategory = async (req, res, next) => {
 };
 
 exports.createProjectCategory = async (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error("Validation failed, entered data is incorrect.");
-    error.statusCode = 422;
-    throw error;
-  }
+  
   const projectId = req.params.projectId;
   try {
+    verifyValidationResult(req);
     const project = await verifyReadProjectById(projectId, req);
     const title = req.body.title;
     const type = req.body.type;
@@ -204,15 +192,11 @@ exports.createProjectCategory = async (req, res, next) => {
 };
 
 exports.updateProjectCategory = async (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error("Validation failed, entered data is incorrect.");
-    error.statusCode = 422;
-    throw error;
-  }
+  
   const projectId = req.params.projectId;
   const categoryId = req.params.categoryId;
   try {
+    verifyValidationResult(req);
     const project = await verifyReadProjectById(projectId, req);
     const category = project.categories.id(categoryId);
     if (!category) {
@@ -248,7 +232,7 @@ exports.deleteProjectCategory = async (req, res, next) => {
       throw error;
     }
     project.categories.pull(categoryId);
-    //TODO Update project totalAmount
+    //Update project totalAmount
     if(CategoryTypes.Revenue === category.type || CategoryTypes.Other === category.type){
       project.totalAmount = project.totalAmount - category.totalAmount;
     }else if(CategoryTypes.Spent === category.type){
@@ -511,10 +495,12 @@ exports.createProjectItem = async (req, res, next) => {
 
     const item = {
       title: req.body.title,
-      amount: req.body.amount
+      amount: +req.body.amount
     };
     project.items.push(item);
-    //TODO Update project totalAmount
+    // Update project totalAmount  
+     project.totalAmount = project.totalAmount + item.amount;
+   
     const updatedProject = await project.save();
 
     res.status(200).json({
@@ -542,7 +528,8 @@ exports.deleteProjectItem = async (req, res, next) => {
       throw error;
     }
     project.items.pull(itemId);
-    //TODO Update project totalAmount
+    //Update project totalAmount
+    project.totalAmount = project.totalAmount - item.amount;
     const updatedProject = await project.save();
 
     res.status(200).json({
@@ -570,9 +557,11 @@ exports.updateProjectItem = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
+    const oldAmount = item.amount;
     item.title = req.body.title;
-    item.amount = req.body.amount;
-    //TODO Update project totalAmount
+    item.amount = +req.body.amount;
+    //Update project totalAmount
+    project.totalAmount = ( project.totalAmount - oldAmount) + item.amount;
     const updatedProject = await project.save();
     res.status(200).json({
       message: "Project item updated successfully !",
@@ -595,6 +584,7 @@ function verifyValidationResult(req) {
   if (!errors.isEmpty()) {
     const error = new Error("Validation failed, entered data is incorrect.");
     error.statusCode = 422;
+    error.data = errors.array();
     throw error;
   }
 }

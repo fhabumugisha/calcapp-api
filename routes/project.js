@@ -101,7 +101,7 @@ router.get("/:projectId/items", auth, projectController.getProjectItems);
 router.post(
   "/:projectId/items",
   auth,
-  [body("title").not().isEmpty(), body("amount").not().isEmpty().isDecimal()],
+  [body("title").not().isEmpty(), body("amount").isDecimal().withMessage("Should be a decimal number")],
   projectController.createProjectItem
 );
 
@@ -116,7 +116,7 @@ router.delete(
 router.put(
   "/:projectId/items/:itemId",
   auth,
-  [body("title").not().isEmpty(), body("amount").not().isEmpty().isDecimal()],
+  [body("title").not().isEmpty(), body("amount").isDecimal().withMessage("Should be a decimal number")],
   projectController.updateProjectItem
 );
 
