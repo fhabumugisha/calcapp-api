@@ -6,7 +6,7 @@ const {ProjectTypes,  CategoryTypes} = require("../models/project");
 
 exports.getProjects = async (req, res, next) => {
   const currentPage = req.query.page || 1;
-  const perPage = 2;
+  const perPage = 200;
   try {
     const totalItems = await Project.find({
       userId: req.userId
@@ -15,7 +15,7 @@ exports.getProjects = async (req, res, next) => {
       userId: req.userId
     })
       .skip((currentPage - 1) * perPage)
-      .limit(perPage);
+      .limit(perPage).sort({createdAt:-1});
 
     res.status(200).json({
       message: "Fetched user projects successfully.",
@@ -35,12 +35,14 @@ exports.postProject = async (req, res, next) => {
 
   const title = req.body.title;
   const type = req.body.type;
+  const description = req.body.description;
   const totalAmount = 0;
   const project = new Project({
     title: title,
     type: type,
     userId: req.userId,
-    totalAmount: totalAmount
+    totalAmount: totalAmount,
+    description : description
   });
   try {
     verifyValidationResult(req);
@@ -67,8 +69,10 @@ exports.updateProject = async (req, res, next) => {
     verifyValidationResult(req);
     const project = await verifyReadProjectById(projectId, req);
     const title = req.body.title;
+    const description = req.body.description;
     //const type =  req.body.type;
     project.title = title;
+    project.description = description;
     // project.type =  type;
     const updatedProject = await project.save();
     res.status(200).json({

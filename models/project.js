@@ -25,6 +25,10 @@ const projectSchema = new Schema(
       type: String,
       required: true
     },
+    description: {
+      type: String,
+      required: false
+    },
     totalAmount: {
       type: Number,
       default: 0
@@ -49,6 +53,10 @@ const projectSchema = new Schema(
           enum: Object.values(CategoryTypes)
         },
         title: {
+          type: String,
+          required: true
+        },
+        description: {
           type: String,
           required: true
         },
