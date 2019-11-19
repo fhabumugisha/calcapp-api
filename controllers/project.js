@@ -70,9 +70,13 @@ exports.updateProject = async (req, res, next) => {
     const project = await verifyReadProjectById(projectId, req);
     const title = req.body.title;
     const description = req.body.description;
+    const items = req.body.items;
+    const categories = req.body.categories;
     //const type =  req.body.type;
     project.title = title;
     project.description = description;
+    project.items = items;
+    project.categories = categories;
     // project.type =  type;
     const updatedProject = await project.save();
     res.status(200).json({
