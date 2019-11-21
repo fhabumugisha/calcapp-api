@@ -5,8 +5,8 @@ const User = require("../models/user");
 const {ProjectTypes,  CategoryTypes} = require("../models/project");
 
 exports.getProjects = async (req, res, next) => {
-  const currentPage = req.query.page || 1;
-  const perPage = 200;
+  const currentPage = +req.query.page || 1;
+  const perPage = +req.query.pagesize || 6
   try {
     const totalItems = await Project.find({
       userId: req.userId
@@ -76,8 +76,21 @@ exports.updateProject = async (req, res, next) => {
     project.title = title;
     project.description = description;
     project.items = items;
-    project.categories = categories;
+    
     // project.type =  type;
+    for (const category of categories) {
+      for (const item of category.items) {
+        const itemAmount = +item.amount;
+        category.totalAmount =  category.totalAmount + itemAmount;
+      }
+      
+      if(CategoryTypes.Revenue === category.type || CategoryTypes.Other === category.type){
+        project.totalAmount = project.totalAmount - category.totalAmount;
+      }else if(CategoryTypes.Spent === category.type){
+        project.totalAmount = project.totalAmount + category.totalAmount;
+      }
+    }
+    project.categories = categories;
     const updatedProject = await project.save();
     res.status(200).json({
       message: "Project updated!",
@@ -214,7 +227,7 @@ exports.updateProjectCategory = async (req, res, next) => {
     }
     const title = req.body.title;
     category.title = title;
-    console.log(category);
+    
     const updatedProject = await project.save();
     res.status(200).json({
       message: "Category updated successfully !",
