@@ -76,20 +76,30 @@ exports.updateProject = async (req, res, next) => {
     project.title = title;
     project.description = description;
     project.items = items;
-    
+    let projectTotalAmount = 0;
     // project.type =  type;
-    for (const category of categories) {
-      for (const item of category.items) {
+    if(ProjectTypes.Purchase === project.type || ProjectTypes.Other === project.type ){
+      for (const item of items) {
         const itemAmount = +item.amount;
-        category.totalAmount =  category.totalAmount + itemAmount;
+        projectTotalAmount =  projectTotalAmount + itemAmount;
       }
-      
-      if(CategoryTypes.Revenue === category.type || CategoryTypes.Other === category.type){
-        project.totalAmount = project.totalAmount - category.totalAmount;
-      }else if(CategoryTypes.Spent === category.type){
-        project.totalAmount = project.totalAmount + category.totalAmount;
+    }else {
+      for (const category of categories) {
+        let categoryTotalAmount = 0
+        for (const item of category.items) {
+          const itemAmount = +item.amount;
+           categoryTotalAmount =  categoryTotalAmount + itemAmount;
+        }
+        category.totalAmount = categoryTotalAmount;
+        if(CategoryTypes.Revenue === category.type || CategoryTypes.Other === category.type){
+          projectTotalAmount = projectTotalAmount + category.totalAmount;
+        }else if(CategoryTypes.Spent === category.type){
+          projectTotalAmount = projectTotalAmount - category.totalAmount;
+        }
       }
     }
+    
+    project.totalAmount = projectTotalAmount
     project.categories = categories;
     const updatedProject = await project.save();
     res.status(200).json({

@@ -52,7 +52,7 @@ exports.login = async (req, res, next) => {
         const token =  jwt.sign({
             email : loadedUser.email,
             userId: loadedUser._id.toString()
-        },'mysupermegasecret', {
+        },process.env.JWT_KEY, {
             expiresIn: expiredDuration
         });
     
