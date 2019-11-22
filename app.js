@@ -1,6 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const helmet = require('helmet');
+const compression = require('compression');
+const morgan = require('morgan');
 //Database
 const mongoose = require('mongoose');
 //const MONGODB_URI = "mongodb://localhost:27017/calcapp";
@@ -12,7 +14,14 @@ const authRoutes = require('./routes/auth');
 
 //The app
 const app = express();
-
+const accessLogStream = fs.createWriteStream(
+    path.join(__dirname, 'access.log'),
+    { flags: 'a' }
+  );
+  
+  app.use(helmet());
+  app.use(compression());
+  app.use(morgan('combined', { stream: accessLogStream }));
 //Parse the request body
 app.use(bodyParser.json());
 //Cors
@@ -46,7 +55,7 @@ app.use((error, req, res, next) => {
 //Connect to database and start server
 mongoose.connect(MONGODB_URI)
     .then(result => {
-        app.listen(port);
+        app.listen(process.env.PORT || 3000);
     })
     .catch(error => {
         console.log(error);
