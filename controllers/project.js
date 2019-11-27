@@ -78,7 +78,7 @@ exports.updateProject = async (req, res, next) => {
     project.items = items;
     let projectTotalAmount = 0;
     // project.type =  type;
-    if(ProjectTypes.Purchase === project.type || ProjectTypes.Other === project.type ){
+    if(ProjectTypes.PURCHASE === project.type || ProjectTypes.OTHER === project.type ){
       for (const item of items) {
         const itemAmount = +item.amount;
         projectTotalAmount =  projectTotalAmount + itemAmount;
@@ -91,9 +91,9 @@ exports.updateProject = async (req, res, next) => {
            categoryTotalAmount =  categoryTotalAmount + itemAmount;
         }
         category.totalAmount = categoryTotalAmount;
-        if(CategoryTypes.Revenue === category.type || CategoryTypes.Other === category.type){
+        if(CategoryTypes.INCOME === category.type || CategoryTypes.OTHER === category.type){
           projectTotalAmount = projectTotalAmount + category.totalAmount;
-        }else if(CategoryTypes.Spent === category.type){
+        }else if(CategoryTypes.EXPENSES === category.type){
           projectTotalAmount = projectTotalAmount - category.totalAmount;
         }
       }
@@ -264,9 +264,9 @@ exports.deleteProjectCategory = async (req, res, next) => {
     }
     project.categories.pull(categoryId);
     //Update project totalAmount
-    if(CategoryTypes.Revenue === category.type || CategoryTypes.Other === category.type){
+    if(CategoryTypes.INCOME === category.type || CategoryTypes.OTHER === category.type){
       project.totalAmount = project.totalAmount - category.totalAmount;
-    }else if(CategoryTypes.Spent === category.type){
+    }else if(CategoryTypes.EXPENSES === category.type){
       project.totalAmount = project.totalAmount + category.totalAmount;
     }
     
@@ -363,9 +363,9 @@ exports.createProjectCategoryItem = async (req, res, next) => {
     //Update total amount
     category.totalAmount =  category.totalAmount + item.amount;
    
-    if(CategoryTypes.Revenue === category.type || CategoryTypes.Other === category.type){
+    if(CategoryTypes.INCOME === category.type || CategoryTypes.OTHER === category.type){
       project.totalAmount = project.totalAmount + item.amount;
-    }else if(CategoryTypes.Spent === category.type){
+    }else if(CategoryTypes.EXPENSES === category.type){
       project.totalAmount = project.totalAmount - item.amount;
     }
     const updatedProject = await project.save();
@@ -406,9 +406,9 @@ exports.deleteProjectCategoryItem = async (req, res, next) => {
     // Update project totalAmount
     category.totalAmount =  category.totalAmount - item.amount;
    
-    if(CategoryTypes.Revenue === category.type || CategoryTypes.Other === category.type){
+    if(CategoryTypes.INCOME === category.type || CategoryTypes.OTHER === category.type){
       project.totalAmount = project.totalAmount - item.amount;
-    }else if(CategoryTypes.Spent === category.type){
+    }else if(CategoryTypes.EXPENSES === category.type){
       project.totalAmount = project.totalAmount + item.amount;
     }
     const updatedProject = await project.save();
@@ -458,9 +458,9 @@ exports.updateProjectCategoryItem = async (req, res, next) => {
     category.totalAmount =  category.totalAmount + newItem.amount;
         
    
-    if(CategoryTypes.Revenue === category.type || CategoryTypes.Other === category.type){
+    if(CategoryTypes.INCOME === category.type || CategoryTypes.OTHER === category.type){
       project.totalAmount = ( project.totalAmount - item.amount) + newItem.amount;
-    }else if(CategoryTypes.Spent === category.type){
+    }else if(CategoryTypes.EXPENSES === category.type){
       project.totalAmount = (project.totalAmount + item.amount) - newItem.amount;
     }
     const updatedProject = await project.save();
