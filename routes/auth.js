@@ -13,9 +13,10 @@ router.post('/signup', [
     body('email')
         .isEmail()
         .withMessage('Please enter a valid email.')
-        .custom((value, req) => {
+        .bail()
+        .custom((value, {req}) => {
                 return User.findOne({email: value}).then(userDoc => {
-                    if(userDoc){
+                    if(userDoc){                      
                         return Promise.reject(' E-Mail exists already, please pick a different one.');
                     }
                 })
@@ -26,9 +27,10 @@ router.post('/signup', [
         .trim()
         .isLength({ min: 5 })
         .isAlphanumeric(),
-    body('confirmPassword').trim()
-        .custom((value, req) => {
-            if (value !== req.body.password) {
+    body('confirmPassword')
+        .trim()
+        .custom((value, {req}) => {
+            if (value !== req.body.password) {         
                 throw new Error('Passwords have to match');
             }
             return true;

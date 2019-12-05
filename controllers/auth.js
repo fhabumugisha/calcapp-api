@@ -5,11 +5,25 @@ const User = require('../models/user');
 
 //Signup
 exports.signup = async (req, res, next) => {
-    handlerInputValidationResult(req);
+    //handlerInputValidationResult(req);
+    
+    try {
+        const errors = await validationResult(req).array();
+                
+    if (!errors.isEmpty) {
+        console.log(errors);
+        const extractedErrors = []
+        errors.map(err => extractedErrors.push({ [err.param]: err.msg }))
+        console.log(extractedErrors);
+        const error = new Error('Validation failed.');
+        error.statusCode = 422;
+        error.data = extractedErrors;
+
+        throw error;
+    }
 
     const email =  req.body.email;
     const password = req.body.password;
-    try {
         const hashedPwd = await bcrypt.hash(password, 12);
     const user = new User({
         email: email,
@@ -74,6 +88,8 @@ exports.login = async (req, res, next) => {
 function handlerInputValidationResult(req) {
     const errors = validationResult(req);
     if (!errors.isEmpty) {
+        console.log(errors);
+        
         const error = new Error('Validation failed.');
         error.statusCode = 422;
         error.data = errors.array();

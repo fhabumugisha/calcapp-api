@@ -7,8 +7,8 @@ const compression = require('compression');
 const morgan = require('morgan');
 //Database
 const mongoose = require('mongoose');
-//const MONGODB_URI = "mongodb://localhost:27017/calcapp";
-const MONGODB_URI = 'mongodb+srv://mongofab:'+ process.env.MONGO_ATLAS_PW +'@cluster0-iogap.mongodb.net/calcapp?retryWrites=true&w=majority';
+const MONGODB_URI = "mongodb://localhost:27017/calcapp";
+//const MONGODB_URI = 'mongodb+srv://mongofab:'+ process.env.MONGO_ATLAS_PW +'@cluster0-iogap.mongodb.net/calcapp?retryWrites=true&w=majority';
 
 //Routes imports
 const projectRoutes = require('./routes/project');
