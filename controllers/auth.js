@@ -13,7 +13,7 @@ exports.signup = async (req, res, next) => {
     if (!errors.isEmpty) {
         console.log(errors);
         const extractedErrors = []
-        errors.map(err => extractedErrors.push({ [err.param]: err.msg }))
+        errors.map(err => extractedErrors.push(err.msg));
         console.log(extractedErrors);
         const error = new Error('Validation failed.');
         error.statusCode = 422;
