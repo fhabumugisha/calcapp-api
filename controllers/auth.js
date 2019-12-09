@@ -8,13 +8,13 @@ exports.signup = async (req, res, next) => {
     //handlerInputValidationResult(req);
     
     try {
-        const errors = await validationResult(req).array();
-                
-    if (!errors.isEmpty) {
-        console.log(errors);
+        const errors = await validationResult(req);
+        console.log('errors: ', errors);    
+    if (!errors.isEmpty()) {
+        console.log('errors: ', errors.errors);
         const extractedErrors = []
-        errors.map(err => extractedErrors.push(err.msg));
-        console.log(extractedErrors);
+        errors.errors.map(err => extractedErrors.push(err.msg));
+        console.log('extractedErrors :' , extractedErrors);
         const error = new Error('Validation failed.');
         error.statusCode = 422;
         error.data = extractedErrors;

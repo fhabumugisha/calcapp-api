@@ -13,7 +13,7 @@ const MONGODB_URI = 'mongodb+srv://mongofab:'+ process.env.MONGO_ATLAS_PW +'@clu
 //Routes imports
 const projectRoutes = require('./routes/project');
 const authRoutes = require('./routes/auth');
-
+const accountRoutes = require('./routes/account');
 //The app
 const app = express();
 const accessLogStream = fs.createWriteStream(
@@ -43,6 +43,7 @@ const port = 3000;
 //Routes
 app.use('/projects', projectRoutes);
 app.use('/auth', authRoutes);
+app.use('/accounts', accountRoutes);
 
 //Error handler
 app.use((error, req, res, next) => {
