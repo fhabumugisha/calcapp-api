@@ -1,0 +1,6 @@
+{
+    "name": "Calcapp.io API",
+    "description" : "A Simple APi for going calculation like spreadsheet",
+    "repository" : "https://github.com/fhabumugisha/calcapp-api",
+    "keywords" :["nodejs", "express", "Rest API"]
+}
