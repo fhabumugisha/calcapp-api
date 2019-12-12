@@ -10,3 +10,7 @@
 
 nodemon.json
 
+# Logs
+logs
+*.log
+
