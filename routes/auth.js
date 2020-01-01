@@ -44,10 +44,7 @@ router.post('/login', [
     .isEmail()
     .withMessage('Please enter a valid email.')
     .bail()
-    // eslint-disable-next-line no-unused-vars
-    .custom((value, req) => {
-      // TODO
-    })
+    
     .normalizeEmail(),
   body('password',
     'Please enter a password with only numbers and text and at least 5 characters.')

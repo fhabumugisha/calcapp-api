@@ -16,8 +16,9 @@ const userSchema = new Schema({
           type: Schema.Types.ObjectId,
           ref: 'Project'
        }
-    ],
-    { timestamps: true }
-})
+    ]
+},
+{ timestamps: true }
+);
 
 module.exports = mongoose.model('User', userSchema);
