@@ -39,6 +39,10 @@ const projectSchema = new Schema(
           type: String,
           required: true
         },
+        description: {
+          type: String,
+          required: false
+        },
         amount: {
           type: Number,
           default: 0
