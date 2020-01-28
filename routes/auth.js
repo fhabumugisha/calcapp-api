@@ -2,58 +2,56 @@ const express = require('express');
 
 const { body } = require('express-validator');
 
-const authController = require('../controllers/auth');
-
-const User = require('../models/user');
+const authController = require('../controllers/auth-controller');
+const userService = require("../services/user-service");
 
 const router = express.Router();
 
 
 router.post('/signup', [
-    body('email')
-        .isEmail()
-        .withMessage('Please enter a valid email.')
-        .custom((value, req) => {
-                return User.findOne({email: value}).then(userDoc => {
-                    if(userDoc){
-                        return Promise.reject(' E-Mail exists already, please pick a different one.');
-                    }
-                })
-        })
-        .normalizeEmail(),
-    body('password',
-        'Please enter a password with only numbers and text and at least 5 characters.')
-        .trim()
-        .isLength({ min: 5 })
-        .isAlphanumeric(),
-    body('confirmPassword').trim()
-        .custom((value, req) => {
-            if (value !== req.body.password) {
-                throw new Error('Passwords have to match');
-            }
-            return true;
-        })
+  body('email')
+    .isEmail()
+    .withMessage('Please enter a valid email.')
+    .bail()
+    // eslint-disable-next-line consistent-return
+    .custom((value) => userService.getUserByEmail(value).then((userDoc) => {
+      if (userDoc) {
+        // eslint-disable-next-line prefer-promise-reject-errors
+        return Promise.reject(' E-Mail exists already, please pick a different one.');
+      }
+    }))
+    .normalizeEmail(),
+  body('password',
+    'Please enter a password with only numbers and text and at least 5 characters.')
+    .trim()
+    .isLength({ min: 5 })
+    .isAlphanumeric(),
+  body('confirmPassword')
+    .trim()
+    .custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error('Passwords have to match');
+      }
+      return true;
+    })
 
 ],
-authController.signup
-);
+authController.signup);
 
 router.post('/login', [
-    body('email')
-        .isEmail()
-        .withMessage('Please enter a valid email.')
-        .custom((value, req) => {
-            //TODO
-        })
-        .normalizeEmail(),
-    body('password',
-        'Please enter a password with only numbers and text and at least 5 characters.')
-        .trim()
-        .isLength({ min: 5 })
-        .isAlphanumeric()
+  body('email')
+    .isEmail()
+    .withMessage('Please enter a valid email.')
+    .bail()
+    
+    .normalizeEmail(),
+  body('password',
+    'Please enter a password with only numbers and text and at least 5 characters.')
+    .trim()
+    .isLength({ min: 5 })
+    .isAlphanumeric()
 ],
-authController.login
-);
+authController.login);
 
 
 module.exports = router;

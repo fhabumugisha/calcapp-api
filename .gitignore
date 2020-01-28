@@ -8,3 +8,9 @@
 # dependencies
 /node_modules
 
+nodemon.json
+
+# Logs
+logs
+*.log
+

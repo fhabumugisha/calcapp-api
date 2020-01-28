@@ -1,57 +1,79 @@
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
+const helmet = require('helmet');
+const compression = require('compression');
+const morgan = require('morgan');
+const chalk = require('chalk');
+const debug = require('debug')('app');
 
-//Database
+
+// Database
 const mongoose = require('mongoose');
-const MONGODB_URI = "mongodb://localhost:27017/calcapp";
-//const MONGODB_URI = 'mongodb+srv://mongofab:<password>@cluster0-iogap.mongodb.net/calcapp?retryWrites=true&w=majority';
+// const MONGODB_URI = "mongodb://localhost:27017/calcapp";
+const MONGODB_URI = `mongodb+srv://mongofab:${process.env.MONGO_ATLAS_PW}@cluster0-iogap.mongodb.net/calcapp?retryWrites=true&w=majority`;
 
-//Routes imports
+// Routes imports
 const projectRoutes = require('./routes/project');
 const authRoutes = require('./routes/auth');
-
-//The app
+const accountRoutes = require('./routes/account');
+const adminRoutes = require('./routes/admin');
+// The app
 const app = express();
+const accessLogStream = fs.createWriteStream(
+  path.join(__dirname, 'access.log'),
+  { flags: 'a' },
+);
 
-//Parse the request body
+app.use(helmet());
+app.use(compression());
+app.use(morgan('combined', { stream: accessLogStream }));
+// Parse the request body
 app.use(bodyParser.json());
-//Cors
+// Cors
 app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader(
-        'Access-Control-Allow-Methods',
-        'OPTIONS, GET, POST, PUT, PATCH, DELETE'
-    );
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    next();
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader(
+    'Access-Control-Allow-Methods',
+    'OPTIONS, GET, POST, PUT, PATCH, DELETE',
+  );
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
 });
 
-//Default port
-const port = 3000;
+// Default port
+const port = process.env.PORT || 3000;
 
-//Routes
+// Routes
 app.use('/projects', projectRoutes);
 app.use('/auth', authRoutes);
+app.use('/accounts', accountRoutes);
+app.use('/admin', adminRoutes);
 
-//Error handler
+// Error handler
+// eslint-disable-next-line no-unused-vars
 app.use((error, req, res, next) => {
-    console.log(error);
-    const status = error.statusCode || 500;
-    const message = error.message;
-    const data = error.data;
-    res.status(status).json({ message: message, data: data });
+  // eslint-disable-next-line no-console
+  debug(chalk.red(error));
+  const status = error.statusCode || 500;
+  const { message, data } = error;
+  res.status(status).json({ message, data });
 });
 
 
-//Connect to database and start server
+// Connect to database and start server
 mongoose.connect(MONGODB_URI)
-    .then(result => {
-        app.listen(port);
-    })
-    .catch(error => {
-        console.log(error);
+  .then(() => {
+    app.listen(port, (error) => {
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.log(chalk.red(error));
+      }
+      debug(`Listing at port ${chalk.green(port)}`);
     });
-
-
-
-
+  })
+  .catch((error) => {
+    // eslint-disable-next-line no-console
+    console.log(chalk.red(error));
+  });

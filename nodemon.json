@@ -1,0 +1,13 @@
+{
+  "ignore": [
+    "test/*",
+    "docs/*",
+    "node_modules/**/node_modules"
+  ],
+  "delay": "2500",
+  "restartable": "rs",
+  "env": {
+    "MONGO_ATLAS_PW": "NLVvb5qETIbyPYps",
+    "JWT_KEY": "secret_this_should_be_longer"
+  }
+}
