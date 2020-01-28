@@ -1,10 +1,46 @@
-const { validationResult } = require("express-validator");
-const Project = require("../models/project");
-const User = require("../models/user");
+const { validationResult } = require('express-validator');
+const Project = require('../models/project');
+const User = require('../models/user');
 
-const {ProjectTypes,  CategoryTypes} = require("../models/project");
-
+const { ProjectTypes, CategoryTypes } = require('../models/project');
 const projectService = require('../services/project-service')
+
+/**
+ *
+ * @param {*} projectId
+ * @param {*} req
+ */
+async function verifyReadProjectById(projectId, req) {
+  const project = await Project.findById(projectId);
+  if (!project) {
+    const error = new Error('Could not find project.');
+    error.statusCode = 404;
+    throw error;
+  }
+  if (project.userId.toString() !== req.userId) {
+    const error = new Error('Not authorized!');
+    error.statusCode = 403;
+    throw error;
+  }
+  return project;
+}
+
+/**
+ *
+ * @param {*} req
+ */
+function verifyValidationResult(req) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error('Validation failed, entered data is incorrect.');
+    error.statusCode = 422;
+    error.data = errors.array();
+    throw error;
+  }
+}
+
+
+
 
 exports.getProjects = async (req, res, next) => {
   const currentPage = +req.query.page || 1;
@@ -36,11 +72,9 @@ exports.getProjects = async (req, res, next) => {
 };
 
 exports.postProject = async (req, res, next) => {
-  
-
-  const title = req.body.title;
-  const type = req.body.type;
-  const description = req.body.description;
+  const { title } = req.body;
+  const { type } = req.body;
+  const { description } = req.body;
   const totalAmount = 0;
   const userId = req.userId;
   const project = new Project({
@@ -57,7 +91,7 @@ exports.postProject = async (req, res, next) => {
     user.projects.push(createdProject);
     await user.save();
     res.status(200).json({
-      message: "Project created successfully",
+      message: 'Project created successfully',
       project: createdProject
     });
   } catch (error) {
@@ -69,47 +103,46 @@ exports.postProject = async (req, res, next) => {
 };
 
 exports.updateProject = async (req, res, next) => {
-  
-  const projectId = req.params.projectId;
+  const { projectId } = req.params;
   try {
     verifyValidationResult(req);
     const project = await verifyReadProjectById(projectId, req);
-    const title = req.body.title;
-    const description = req.body.description;
-    const items = req.body.items;
-    const categories = req.body.categories;
-    //const type =  req.body.type;
+    const { title } = req.body;
+    const { description } = req.body;
+    const { items } = req.body;
+    const { categories } = req.body;
+    // const type =  req.body.type;
     project.title = title;
     project.description = description;
     project.items = items;
     let projectTotalAmount = 0;
     // project.type =  type;
-    if(ProjectTypes.PURCHASE === project.type || ProjectTypes.OTHER === project.type ){
+    if (ProjectTypes.PURCHASE === project.type || ProjectTypes.OTHER === project.type) {
       for (const item of items) {
         const itemAmount = +item.amount;
-        projectTotalAmount =  projectTotalAmount + itemAmount;
+        projectTotalAmount += itemAmount;
       }
-    }else {
+    } else {
       for (const category of categories) {
-        let categoryTotalAmount = 0
+        let categoryTotalAmount = 0;
         for (const item of category.items) {
           const itemAmount = +item.amount;
-           categoryTotalAmount =  categoryTotalAmount + itemAmount;
+          categoryTotalAmount += itemAmount;
         }
         category.totalAmount = categoryTotalAmount;
-        if(CategoryTypes.INCOME === category.type || CategoryTypes.OTHER === category.type){
-          projectTotalAmount = projectTotalAmount + category.totalAmount;
-        }else if(CategoryTypes.EXPENSES === category.type){
-          projectTotalAmount = projectTotalAmount - category.totalAmount;
+        if (CategoryTypes.INCOME === category.type || CategoryTypes.OTHER === category.type) {
+          projectTotalAmount += category.totalAmount;
+        } else if (CategoryTypes.EXPENSES === category.type) {
+          projectTotalAmount -= category.totalAmount;
         }
       }
     }
-    
-    project.totalAmount = projectTotalAmount
+
+    project.totalAmount = projectTotalAmount;
     project.categories = categories;
     const updatedProject = await project.save();
     res.status(200).json({
-      message: "Project updated!",
+      message: 'Project updated!',
       project: updatedProject
     });
   } catch (error) {
@@ -121,7 +154,7 @@ exports.updateProject = async (req, res, next) => {
 };
 
 exports.deleteProject = async (req, res, next) => {
-  const projectId = req.params.projectId;
+  const { projectId } = req.params;
 
   try {
     await verifyReadProjectById(projectId, req);
@@ -132,7 +165,7 @@ exports.deleteProject = async (req, res, next) => {
     user.projects.pull(projectId);
     await user.save();
     res.status(200).json({
-      message: "Deleted project."
+      message: 'Deleted project.'
     });
   } catch (error) {
     if (!error.statusCode) {
@@ -143,13 +176,13 @@ exports.deleteProject = async (req, res, next) => {
 };
 
 exports.getProject = async (req, res, next) => {
-  const projectId = req.params.projectId;
+  const { projectId } = req.params;
 
   try {
     const project = await verifyReadProjectById(projectId, req);
     res.status(200).json({
-      message: "Project fetched successfully updated!",
-      project: project
+      message: 'Project fetched successfully updated!',
+      project
     });
   } catch (error) {
     if (!error.statusCode) {
@@ -160,12 +193,12 @@ exports.getProject = async (req, res, next) => {
 };
 
 exports.getProjectCategories = async (req, res, next) => {
-  const projectId = req.params.projectId;
+  const { projectId } = req.params;
 
   try {
     const project = await verifyReadProjectById(projectId, req);
     res.status(200).json({
-      message: "Project categories fetched successfully !",
+      message: 'Project categories fetched successfully !',
       categories: project.categories
     });
   } catch (error) {
@@ -177,20 +210,20 @@ exports.getProjectCategories = async (req, res, next) => {
 };
 
 exports.getProjectCategory = async (req, res, next) => {
-  const projectId = req.params.projectId;
-  const categoryId = req.params.categoryId;
+  const { projectId } = req.params;
+  const { categoryId } = req.params;
   try {
     const project = await verifyReadProjectById(projectId, req);
 
     const category = project.categories.id(categoryId);
     if (!category) {
-      const error = new Error("Could not find category.");
+      const error = new Error('Could not find category.');
       error.statusCode = 404;
       throw error;
     }
     res.status(200).json({
-      message: "Project category fetched successfully !",
-      category: category
+      message: 'Project category fetched successfully !',
+      category
     });
   } catch (error) {
     if (!error.statusCode) {
@@ -201,23 +234,22 @@ exports.getProjectCategory = async (req, res, next) => {
 };
 
 exports.createProjectCategory = async (req, res, next) => {
-  
-  const projectId = req.params.projectId;
+  const { projectId } = req.params;
   try {
     verifyValidationResult(req);
     const project = await verifyReadProjectById(projectId, req);
-    const title = req.body.title;
-    const type = req.body.type;
+    const { title } = req.body;
+    const { type } = req.body;
     const category = {
-      title: title,
-      type: type
+      title,
+      type
     };
     project.categories.push(category);
 
     const updatedProject = await project.save();
 
     res.status(200).json({
-      message: "Category created successfully !",
+      message: 'Category created successfully !',
       project: updatedProject
     });
   } catch (error) {
@@ -229,24 +261,23 @@ exports.createProjectCategory = async (req, res, next) => {
 };
 
 exports.updateProjectCategory = async (req, res, next) => {
-  
-  const projectId = req.params.projectId;
-  const categoryId = req.params.categoryId;
+  const { projectId } = req.params;
+  const { categoryId } = req.params;
   try {
     verifyValidationResult(req);
     const project = await verifyReadProjectById(projectId, req);
     const category = project.categories.id(categoryId);
     if (!category) {
-      const error = new Error("Could not find category.");
+      const error = new Error('Could not find category.');
       error.statusCode = 404;
       throw error;
     }
-    const title = req.body.title;
+    const { title } = req.body;
     category.title = title;
-    
+
     const updatedProject = await project.save();
     res.status(200).json({
-      message: "Category updated successfully !",
+      message: 'Category updated successfully !',
       project: updatedProject
     });
   } catch (error) {
@@ -258,27 +289,27 @@ exports.updateProjectCategory = async (req, res, next) => {
 };
 
 exports.deleteProjectCategory = async (req, res, next) => {
-  const projectId = req.params.projectId;
-  const categoryId = req.params.categoryId;
+  const { projectId } = req.params;
+  const { categoryId } = req.params;
   try {
     const project = await verifyReadProjectById(projectId, req);
     const category = project.categories.id(categoryId);
     if (!category) {
-      const error = new Error("Could not find category.");
+      const error = new Error('Could not find category.');
       error.statusCode = 404;
       throw error;
     }
     project.categories.pull(categoryId);
-    //Update project totalAmount
-    if(CategoryTypes.INCOME === category.type || CategoryTypes.OTHER === category.type){
-      project.totalAmount = project.totalAmount - category.totalAmount;
-    }else if(CategoryTypes.EXPENSES === category.type){
-      project.totalAmount = project.totalAmount + category.totalAmount;
+    // Update project totalAmount
+    if (CategoryTypes.INCOME === category.type || CategoryTypes.OTHER === category.type) {
+      project.totalAmount -= category.totalAmount;
+    } else if (CategoryTypes.EXPENSES === category.type) {
+      project.totalAmount += category.totalAmount;
     }
-    
+
     const updatedProject = await project.save();
     res.status(200).json({
-      message: "Category deleted successfully !",
+      message: 'Category deleted successfully !',
       project: updatedProject
     });
   } catch (error) {
@@ -290,19 +321,19 @@ exports.deleteProjectCategory = async (req, res, next) => {
 };
 
 exports.getProjectCategoryItems = async (req, res, next) => {
-  const projectId = req.params.projectId;
-  const categoryId = req.params.categoryId;
+  const { projectId } = req.params;
+  const { categoryId } = req.params;
   try {
     const project = await verifyReadProjectById(projectId, req);
     const category = project.categories.id(categoryId);
     if (!category) {
-      const error = new Error("Could not find category.");
+      const error = new Error('Could not find category.');
       error.statusCode = 404;
       throw error;
     }
 
     res.status(200).json({
-      message: "Category items fetched successfully !",
+      message: 'Category items fetched successfully !',
       items: category.items
     });
   } catch (error) {
@@ -314,29 +345,29 @@ exports.getProjectCategoryItems = async (req, res, next) => {
 };
 
 exports.getProjectCategoryItem = async (req, res, next) => {
-  const projectId = req.params.projectId;
-  const categoryId = req.params.categoryId;
-  const itemId = req.params.itemId;
+  const { projectId } = req.params;
+  const { categoryId } = req.params;
+  const { itemId } = req.params;
 
   try {
     const project = await verifyReadProjectById(projectId, req);
     const category = project.categories.id(categoryId);
     if (!category) {
-      const error = new Error("Could not find category.");
+      const error = new Error('Could not find category.');
       error.statusCode = 404;
       throw error;
     }
 
     const item = category.items.id(itemId);
     if (!item) {
-      const error = new Error("Could not find item.");
+      const error = new Error('Could not find item.');
       error.statusCode = 404;
       throw error;
     }
 
     res.status(200).json({
-      message: "Category item fetched successfully !",
-      item: item
+      message: 'Category item fetched successfully !',
+      item
     });
   } catch (error) {
     if (!error.statusCode) {
@@ -347,15 +378,15 @@ exports.getProjectCategoryItem = async (req, res, next) => {
 };
 
 exports.createProjectCategoryItem = async (req, res, next) => {
-  const projectId = req.params.projectId;
-  const categoryId = req.params.categoryId;
+  const { projectId } = req.params;
+  const { categoryId } = req.params;
 
   try {
     verifyValidationResult(req);
     const project = await verifyReadProjectById(projectId, req);
     const category = project.categories.id(categoryId);
     if (!category) {
-      const error = new Error("Could not find category.");
+      const error = new Error('Could not find category.');
       error.statusCode = 404;
       throw error;
     }
@@ -364,19 +395,19 @@ exports.createProjectCategoryItem = async (req, res, next) => {
       title: req.body.title,
       amount: +req.body.amount
     };
-    
+
     category.items.push(item);
-    //Update total amount
-    category.totalAmount =  category.totalAmount + item.amount;
-   
-    if(CategoryTypes.INCOME === category.type || CategoryTypes.OTHER === category.type){
-      project.totalAmount = project.totalAmount + item.amount;
-    }else if(CategoryTypes.EXPENSES === category.type){
-      project.totalAmount = project.totalAmount - item.amount;
+    // Update total amount
+    category.totalAmount += item.amount;
+
+    if (CategoryTypes.INCOME === category.type || CategoryTypes.OTHER === category.type) {
+      project.totalAmount += item.amount;
+    } else if (CategoryTypes.EXPENSES === category.type) {
+      project.totalAmount -= item.amount;
     }
     const updatedProject = await project.save();
     res.status(200).json({
-      message: "Category item created successfully !",
+      message: 'Category item created successfully !',
       project: updatedProject
     });
   } catch (error) {
@@ -388,38 +419,38 @@ exports.createProjectCategoryItem = async (req, res, next) => {
 };
 
 exports.deleteProjectCategoryItem = async (req, res, next) => {
-  const projectId = req.params.projectId;
-  const categoryId = req.params.categoryId;
-  const itemId = req.params.itemId;
+  const { projectId } = req.params;
+  const { categoryId } = req.params;
+  const { itemId } = req.params;
 
   try {
     const project = await verifyReadProjectById(projectId, req);
     const category = project.categories.id(categoryId);
     if (!category) {
-      const error = new Error("Could not find category.");
+      const error = new Error('Could not find category.');
       error.statusCode = 404;
       throw error;
     }
 
     const item = category.items.id(itemId);
     if (!item) {
-      const error = new Error("Could not find item.");
+      const error = new Error('Could not find item.');
       error.statusCode = 404;
       throw error;
     }
 
     category.items.pull(itemId);
     // Update project totalAmount
-    category.totalAmount =  category.totalAmount - item.amount;
-   
-    if(CategoryTypes.INCOME === category.type || CategoryTypes.OTHER === category.type){
-      project.totalAmount = project.totalAmount - item.amount;
-    }else if(CategoryTypes.EXPENSES === category.type){
-      project.totalAmount = project.totalAmount + item.amount;
+    category.totalAmount -= item.amount;
+
+    if (CategoryTypes.INCOME === category.type || CategoryTypes.OTHER === category.type) {
+      project.totalAmount -= item.amount;
+    } else if (CategoryTypes.EXPENSES === category.type) {
+      project.totalAmount += item.amount;
     }
     const updatedProject = await project.save();
     res.status(200).json({
-      message: "Category item deleted successfully !",
+      message: 'Category item deleted successfully !',
       project: updatedProject
     });
   } catch (error) {
@@ -431,47 +462,47 @@ exports.deleteProjectCategoryItem = async (req, res, next) => {
 };
 
 exports.updateProjectCategoryItem = async (req, res, next) => {
-  const projectId = req.params.projectId;
-  const categoryId = req.params.categoryId;
-  const itemId = req.params.itemId;
+  const { projectId } = req.params;
+  const { categoryId } = req.params;
+  const { itemId } = req.params;
 
   try {
     verifyValidationResult(req);
     const project = await verifyReadProjectById(projectId, req);
     const category = project.categories.id(categoryId);
     if (!category) {
-      const error = new Error("Could not find category.");
+      const error = new Error('Could not find category.');
       error.statusCode = 404;
       throw error;
     }
 
     const item = category.items.id(itemId);
     if (!item) {
-      const error = new Error("Could not find item.");
+      const error = new Error('Could not find item.');
       error.statusCode = 404;
       throw error;
     }
-       
-    category.items.pull(itemId);   
-    //Update total amount
-    category.totalAmount =  category.totalAmount - item.amount;
-   
+
+    category.items.pull(itemId);
+    // Update total amount
+    category.totalAmount -= item.amount;
+
     const newItem = {
-      title : req.body.title,
+      title: req.body.title,
       amount: +req.body.amount
-    }
-    category.items.push(newItem);    
-    category.totalAmount =  category.totalAmount + newItem.amount;
-        
-   
-    if(CategoryTypes.INCOME === category.type || CategoryTypes.OTHER === category.type){
-      project.totalAmount = ( project.totalAmount - item.amount) + newItem.amount;
-    }else if(CategoryTypes.EXPENSES === category.type){
+    };
+    category.items.push(newItem);
+    category.totalAmount += newItem.amount;
+
+
+    if (CategoryTypes.INCOME === category.type || CategoryTypes.OTHER === category.type) {
+      project.totalAmount = (project.totalAmount - item.amount) + newItem.amount;
+    } else if (CategoryTypes.EXPENSES === category.type) {
       project.totalAmount = (project.totalAmount + item.amount) - newItem.amount;
     }
     const updatedProject = await project.save();
     res.status(200).json({
-      message: "Category item updated successfully !",
+      message: 'Category item updated successfully !',
       project: updatedProject
     });
   } catch (error) {
@@ -483,12 +514,12 @@ exports.updateProjectCategoryItem = async (req, res, next) => {
 };
 
 exports.getProjectItems = async (req, res, next) => {
-  const projectId = req.params.projectId;
+  const { projectId } = req.params;
 
   try {
     const project = await verifyReadProjectById(projectId, req);
     res.status(200).json({
-      message: "Project items fetched successfully !",
+      message: 'Project items fetched successfully !',
       items: project.items
     });
   } catch (error) {
@@ -500,20 +531,20 @@ exports.getProjectItems = async (req, res, next) => {
 };
 
 exports.getProjectItem = async (req, res, next) => {
-  const projectId = req.params.projectId;
-  const itemId = req.params.itemId;
+  const { projectId } = req.params;
+  const { itemId } = req.params;
   try {
     const project = await verifyReadProjectById(projectId, req);
 
     const item = project.items.id(itemId);
     if (!item) {
-      const error = new Error("Could not find item.");
+      const error = new Error('Could not find item.');
       error.statusCode = 404;
       throw error;
     }
     res.status(200).json({
-      message: "Project item fetched successfully !",
-      item: item
+      message: 'Project item fetched successfully !',
+      item
     });
   } catch (error) {
     if (!error.statusCode) {
@@ -524,7 +555,7 @@ exports.getProjectItem = async (req, res, next) => {
 };
 
 exports.createProjectItem = async (req, res, next) => {
-  const projectId = req.params.projectId;
+  const { projectId } = req.params;
 
   try {
     verifyValidationResult(req);
@@ -535,13 +566,13 @@ exports.createProjectItem = async (req, res, next) => {
       amount: +req.body.amount
     };
     project.items.push(item);
-    // Update project totalAmount  
-     project.totalAmount = project.totalAmount + item.amount;
-   
+    // Update project totalAmount
+    project.totalAmount += item.amount;
+
     const updatedProject = await project.save();
 
     res.status(200).json({
-      message: "Project item created successfully !",
+      message: 'Project item created successfully !',
       project: updatedProject
     });
   } catch (error) {
@@ -553,24 +584,24 @@ exports.createProjectItem = async (req, res, next) => {
 };
 
 exports.deleteProjectItem = async (req, res, next) => {
-  const projectId = req.params.projectId;
-  const itemId = req.params.itemId;
+  const { projectId } = req.params;
+  const { itemId } = req.params;
   try {
     const project = await verifyReadProjectById(projectId, req);
 
     const item = project.items.id(itemId);
     if (!item) {
-      const error = new Error("Could not find item.");
+      const error = new Error('Could not find item.');
       error.statusCode = 404;
       throw error;
     }
     project.items.pull(itemId);
-    //Update project totalAmount
-    project.totalAmount = project.totalAmount - item.amount;
+    // Update project totalAmount
+    project.totalAmount -= item.amount;
     const updatedProject = await project.save();
 
     res.status(200).json({
-      message: "Project item deleted successfully !",
+      message: 'Project item deleted successfully !',
       project: updatedProject
     });
   } catch (error) {
@@ -584,24 +615,24 @@ exports.deleteProjectItem = async (req, res, next) => {
 exports.updateProjectItem = async (req, res, next) => {
   try {
     verifyValidationResult(req);
-    const projectId = req.params.projectId;
-    const itemId = req.params.itemId;
+    const { projectId } = req.params;
+    const { itemId } = req.params;
     const project = await verifyReadProjectById(projectId, req);
 
     const item = project.items.id(itemId);
     if (!item) {
-      const error = new Error("Could not find item.");
+      const error = new Error('Could not find item.');
       error.statusCode = 404;
       throw error;
     }
     const oldAmount = item.amount;
     item.title = req.body.title;
     item.amount = +req.body.amount;
-    //Update project totalAmount
-    project.totalAmount = ( project.totalAmount - oldAmount) + item.amount;
+    // Update project totalAmount
+    project.totalAmount = (project.totalAmount - oldAmount) + item.amount;
     const updatedProject = await project.save();
     res.status(200).json({
-      message: "Project item updated successfully !",
+      message: 'Project item updated successfully !',
       project: updatedProject
     });
   } catch (error) {
@@ -612,35 +643,4 @@ exports.updateProjectItem = async (req, res, next) => {
   }
 };
 
-/**
- *
- * @param {*} req
- */
-function verifyValidationResult(req) {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error("Validation failed, entered data is incorrect.");
-    error.statusCode = 422;
-    error.data = errors.array();
-    throw error;
-  }
-}
-/**
- *
- * @param {*} projectId
- * @param {*} req
- */
-async function verifyReadProjectById(projectId, req) {
-  const project = await Project.findById(projectId);
-  if (!project) {
-    const error = new Error("Could not find project.");
-    error.statusCode = 404;
-    throw error;
-  }
-  if (project.userId.toString() != req.userId) {
-    const error = new Error("Not authorized!");
-    error.statusCode = 403;
-    throw error;
-  }
-  return project;
-}
+

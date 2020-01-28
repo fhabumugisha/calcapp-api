@@ -3,15 +3,15 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const ProjectTypes = Object.freeze({
-  BUDGET: "budget",
-  PURCHASE: "purchase",
-  OTHER: "OTHER"
+  BUDGET: "Budget",
+  PURCHASE: "Cost",
+  OTHER: "Other"
 });
 
 const CategoryTypes = Object.freeze({
-  INCOME: "income",
-  EXPENSES: "expenses",
-  OTHER: "OTHER"
+  INCOME: "Income",
+  EXPENSES: "Expenses",
+  OTHER: "Other"
 });
 
 const projectSchema = new Schema(
@@ -38,6 +38,10 @@ const projectSchema = new Schema(
         title: {
           type: String,
           required: true
+        },
+        description: {
+          type: String,
+          required: false
         },
         amount: {
           type: Number,
@@ -73,6 +77,10 @@ const projectSchema = new Schema(
             amount: {
               type: Number,
               default: 0
+            },
+            description: {
+              type: String,
+              required: false
             }
           }
         ]
