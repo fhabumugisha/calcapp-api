@@ -4,23 +4,28 @@ const User = require("../models/user");
 
 const {ProjectTypes,  CategoryTypes} = require("../models/project");
 
+const projectService = require('../services/project-service')
+
 exports.getProjects = async (req, res, next) => {
   const currentPage = +req.query.page || 1;
-  const perPage = +req.query.pagesize || 6
+  const perPage = +req.query.pagesize || 6;
+  const userId = req.userId
   try {
-    const totalItems = await Project.find({
+    /* const totalItems = await Project.find({
       userId: req.userId
     }).countDocuments();
     const projects = await Project.find({
       userId: req.userId
     })
       .skip((currentPage - 1) * perPage)
-      .limit(perPage).sort({createdAt:-1});
+      .limit(perPage).sort({createdAt:-1}); */
+
+      const result = await projectService.getProjectsByUserId(userId, currentPage, perPage)
 
     res.status(200).json({
       message: "Fetched user projects successfully.",
-      projects: projects,
-      totalItems: totalItems
+      projects: result.projects,
+      totalItems: result.totalItems
     });
   } catch (error) {
     if (!error.statusCode) {
@@ -37,17 +42,18 @@ exports.postProject = async (req, res, next) => {
   const type = req.body.type;
   const description = req.body.description;
   const totalAmount = 0;
+  const userId = req.userId;
   const project = new Project({
     title: title,
     type: type,
-    userId: req.userId,
+    userId: userId,
     totalAmount: totalAmount,
     description : description
   });
   try {
     verifyValidationResult(req);
     const createdProject = await project.save();
-    const user = await User.findById(req.userId);
+    const user = await User.findById(userId);
     user.projects.push(createdProject);
     await user.save();
     res.status(200).json({
