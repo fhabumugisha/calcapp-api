@@ -9,6 +9,7 @@ const userService = require("../services/user-service");
  */
 async function verifyReadProjectById(projectId, req) {
   const project = await projectService.getProject(projectId);
+ 
   if (!project) {
     const error = new Error("Could not find project.");
     error.statusCode = 404;
@@ -61,16 +62,19 @@ exports.getProjects = async (req, res, next) => {
 };
 
 exports.postProject = async (req, res, next) => {
-  const { title, type, description } = req.body;
+  const { title, type, description, items, categories, totalAmount } = req.body;
 
-  const totalAmount = 0;
+  //const totalAmount = 0;
+ 
   const userId = req.userId;
   const project = {
     title: title,
     type: type,
     userId: userId,
-    totalAmount: totalAmount,
-    description: description
+    totalAmount: totalAmount || 0,
+    description: description,
+    items: items || [],
+    categories : categories || []
   };
   try {
     verifyValidationResult(req);
@@ -123,7 +127,7 @@ exports.deleteProject = async (req, res, next) => {
 
   try {
     await verifyReadProjectById(projectId, req);
-
+    console.log("delete project");
     await projectService.deleteProject(projectId);
 
     await userService.removeProject(req.userId, projectId);
@@ -131,8 +135,10 @@ exports.deleteProject = async (req, res, next) => {
       message: "Deleted project."
     });
   } catch (error) {
+    console.log(error)
     if (!error.statusCode) {
       error.statusCode = 500;
+      error.message = "Error while deleting project"
     }
     next(error);
   }

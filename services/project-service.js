@@ -1,5 +1,6 @@
 const Project = require("../models/project");
 const { ProjectTypes, CategoryTypes } = require('../models/project');
+
 const getProjectsByUserId = async (userId, currentPage, perPage) => {
   try {
     const totalItems = await Project.find({ userId: userId }).countDocuments();
@@ -33,13 +34,15 @@ const getProjects = async (currentPage, perPage) => {
   }
 };
 
-const saveProject = async newProject => {
+const saveProject = async (newProject) => {
   const project = new Project({
     title: newProject.title,
     type: newProject.type,
     userId: newProject.userId,
     totalAmount: newProject.totalAmount,
-    description: newProject.description
+    description: newProject.description,
+    items: newProject.items,
+    categories : newProject.categories
   });
 
   try {
@@ -95,7 +98,7 @@ const updateProject = async (projectId, projectUpdate) => {
   }
 };
 
-const deleteProject = async projectId => {
+const deleteProject = async (projectId) => {
   try {
     await Project.findByIdAndRemove(projectId);
   } catch (e) {
@@ -110,9 +113,10 @@ const deleteProjectsByUserId = async (userId) => {
         throw new Error(e.message);
     }
 }
-const getProject = async projectId => {
+const getProject = async (projectId) => {
   try {
     return await Project.findById(projectId);
+     
   } catch (e) {
     throw new Error(e.message);
   }

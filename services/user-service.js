@@ -56,7 +56,7 @@ const addProject =  async (userId, project) => {
 
 const removeProject = async (userId, projectId) => {
     try {
-        await User.findById(req.userId);
+     const user =  await User.findById(userId);
     user.projects.pull(projectId);
     await user.save();
     } catch (e) {
