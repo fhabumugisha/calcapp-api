@@ -91,7 +91,13 @@ exports.send = async (req, res, next) => {
         )
       )
     })
-    Promise.all(promises).then(() => res.sendStatus(200));
+    Promise.all(promises).then(() => {
+      res.status(200).json({
+        message: "subscription deleted successfully"
+      })
+    }).catch((error) => {
+      console.log(error);
+    });
   } catch (error) {
       if (!error.statusCode) {
           error.statusCode = 500;
