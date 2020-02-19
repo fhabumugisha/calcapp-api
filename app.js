@@ -7,7 +7,8 @@ const compression = require('compression');
 const morgan = require('morgan');
 const chalk = require('chalk');
 const debug = require('debug')('app');
-
+const webpush = require('web-push');
+webpush.setVapidDetails(`mailto:${process.env.MAILTO}`,process.env.PUBLIC_VAPID ,process.env.PRIVATE_VAPID )
 
 // Database
 const mongoose = require('mongoose');
@@ -19,6 +20,7 @@ const projectRoutes = require('./routes/project');
 const authRoutes = require('./routes/auth');
 const accountRoutes = require('./routes/account');
 const adminRoutes = require('./routes/admin');
+const notificationRoutes = require('./routes/notification')
 // The app
 const app = express();
 const accessLogStream = fs.createWriteStream(
@@ -42,6 +44,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use('/static', express.static(__dirname + '/public'));
 // Default port
 const port = process.env.PORT || 3000;
 
@@ -50,6 +53,7 @@ app.use('/projects', projectRoutes);
 app.use('/auth', authRoutes);
 app.use('/accounts', accountRoutes);
 app.use('/admin', adminRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Error handler
 // eslint-disable-next-line no-unused-vars

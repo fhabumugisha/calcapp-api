@@ -10,6 +10,9 @@
     "MONGO_ATLAS_PW": "NLVvb5qETIbyPYps",
     "JWT_KEY": "secret_this_should_be_longer",
     "OKTA_CLIENT_ID": "0oa1a648k9A0bY69p4x6",
-    "OKTA_ISSUER" : "dev-217800.okta.com"
+    "OKTA_ISSUER" : "dev-217800.okta.com",
+    "PUBLIC_VAPID":"BBCLVrc4fofi36hjglFOS0vdnpohmKtBEIKTQCrB6ShQJs3HtoHj4_x3D3KfESxAdlR4PrMpjlwU03Os-quOtoo",
+    "PRIVATE_VAPID": "_nu3mVPD7MjprIX40Jc7U94F5qRAlpAL919wE65I1jw",
+    "MAILTO": "fabriceboris@yahoo.fr"
   }
 }
