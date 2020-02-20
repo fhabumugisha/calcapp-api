@@ -10,7 +10,7 @@ router.get('/',  notificationController.getSubscriptions);
 router.post('/',  notificationController.subscribe);
 router.delete('/',
      [
-        query('notificationEndPoint')
+        query('notificationEndpoint')
         .exists()
         .withMessage("Please enter the notificationEndpoint to delete as url query param")
    

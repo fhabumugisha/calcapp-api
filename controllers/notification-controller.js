@@ -58,13 +58,20 @@ exports.unsubscribe = async (req, res, next) => {
       error.data = errors.array();
       throw error;
     }
-    const { notificationEndpoint } = req.query.notificationEndpoint;
+    const { notificationEndpoint } = req.query;
+    console.log(notificationEndpoint);
     
     const pushSub = await PushSubscription.findOne({
       endpoint: notificationEndpoint
     });
     if (pushSub) {
       await PushSubscription.remove(pushSub);
+    }else{
+      
+        const error = new Error("Could not find project.");
+        error.statusCode = 404;
+        throw error;
+      
     }
     res.status(200).json({
       message: "subscription deleted successfully"
