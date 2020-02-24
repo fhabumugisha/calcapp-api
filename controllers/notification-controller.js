@@ -137,3 +137,22 @@ exports.send = async (req, res, next) => {
     next(error);
   }
 };
+
+
+exports.getNotifications = async (req, res, next) => {
+  console.log("Get Notifications");
+
+  try {
+   const notifications = await Notification.find().sort({createdAt:-1});
+
+    res.status(200).json({
+      message: "Notifications listed successfully",
+      notifications: notifications
+    });
+  } catch (error) {
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+    next(error);
+  }
+};
