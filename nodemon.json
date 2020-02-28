@@ -8,6 +8,7 @@
   "restartable": "rs",
   "env": {
     "MONGO_ATLAS_PW": "NLVvb5qETIbyPYps",
+    "MONGO_ATLAS_DB": "calcapptest",
     "JWT_KEY": "secret_this_should_be_longer",
     "OKTA_CLIENT_ID": "0oa1a648k9A0bY69p4x6",
     "OKTA_ISSUER" : "dev-217800.okta.com",
