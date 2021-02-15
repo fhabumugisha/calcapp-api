@@ -12,7 +12,7 @@ webpush.setVapidDetails(`mailto:${process.env.MAILTO}`,process.env.PUBLIC_VAPID 
 
 // Database
 const mongoose = require('mongoose');
-// const MONGODB_URI = "mongodb://localhost:27017/calcapp"; MONGO_ATLAS_DB
+ //const MONGODB_URI = "mongodb://localhost:27017/calcapp";// MONGO_ATLAS_DB
 const MONGODB_URI = `mongodb+srv://mongofab:${process.env.MONGO_ATLAS_PW}@cluster0-iogap.mongodb.net/${process.env.MONGO_ATLAS_DB}?retryWrites=true&w=majority`;
 
 // Routes imports
@@ -67,7 +67,7 @@ app.use((error, req, res, next) => {
 
 
 // Connect to database and start server
-mongoose.connect(MONGODB_URI)
+mongoose.connect(MONGODB_URI, {useNewUrlParser: true})
   .then(() => {
     app.listen(port, (error) => {
       if (error) {
